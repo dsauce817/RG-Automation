@@ -406,13 +406,9 @@
                 <h3 class="section-subheading text-muted">Send us a message we will get back to you ASAP!</h3>
             </div>
             <!-- * * * * * * * * * * * * * * *-->
-            <!-- * * SB Forms Contact Form * *-->
+            <!-- * * DSauce Forms Contact Form * *-->
             <!-- * * * * * * * * * * * * * * *-->
-            <!-- This form is pre-integrated with SB Forms.-->
-            <!-- To make this form functional, sign up at-->
-            <!-- https://startbootstrap.com/solution/contact-forms-->
-            <!-- to get an API token!-->
-            <form id="contactForm" data-sb-form-api-token="cc647a28-4183-4127-a7c5-3ffc968a0c4e">
+            <form id="contactForm" >
                 <div class="row align-items-stretch mb-5">
                     <div class="col-md-6">
                         <div class="form-group">
@@ -464,8 +460,16 @@
                     <div class="text-center text-danger mb-3">Error sending message!</div>
                 </div>
                 <!-- Submit Button-->
-                <div class="text-center"><button class="btn btn-primary btn-xl text-uppercase disabled"
-                        id="submitButton" type="submit">Send Message</button></div>
+                <div class="text-center">
+                    <button
+                        class="btn btn-primary btn-xl text-uppercase"
+                        id="submitButton"
+                        type="submit"
+                        disabled
+                    >
+                        Send Message
+                    </button>
+                </div>
             </form>
         </div>
     </section>
@@ -730,11 +734,84 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Core theme JS-->
     <script src="js/scripts.js"></script>
-    <!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *-->
-    <!-- * *                               SB Forms JS                               * *-->
-    <!-- * * Activate your form at https://startbootstrap.com/solution/contact-forms * *-->
-    <!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *-->
-    <script src="https://cdn.startbootstrap.com/sb-forms-latest.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const form = document.getElementById("contactForm");
+            const submitButton = document.getElementById("submitButton");
+
+            const nameInput = document.getElementById("name");
+            const emailInput = document.getElementById("email");
+            const phoneInput = document.getElementById("phone");
+            const messageInput = document.getElementById("message");
+
+            const successMessage = document.getElementById("submitSuccessMessage");
+            const errorMessage = document.getElementById("submitErrorMessage");
+
+            function isEmailValid(email) {
+            return /\S+@\S+\.\S+/.test(email);
+            }
+
+            function updateButtonState() {
+            const name = nameInput.value.trim();
+            const email = emailInput.value.trim();
+            const phone = phoneInput.value.trim();
+            const message = messageInput.value.trim();
+
+            const isValid =
+                name.length > 0 &&
+                phone.length > 0 &&
+                message.length > 0 &&
+                isEmailValid(email);
+
+            submitButton.disabled = !isValid;
+            }
+
+            // Run validation whenever the user types
+            [nameInput, emailInput, phoneInput, messageInput].forEach((input) => {
+            input.addEventListener("input", updateButtonState);
+            });
+
+            // Initial state (disabled)
+            updateButtonState();
+
+            form.addEventListener("submit", async (e) => {
+                e.preventDefault();
+
+                // Safety: don't submit if somehow still invalid
+                if (submitButton.disabled) return;
+
+                submitButton.disabled = true;
+                successMessage.classList.add("d-none");
+                errorMessage.classList.add("d-none");
+
+                const payload = {
+                    name: nameInput.value.trim(),
+                    email: emailInput.value.trim(),
+                    phone: phoneInput.value.trim(),
+                    message: messageInput.value.trim(),
+                };
+
+                try {
+                    const API_BASE = "https://rg-security-contact-api.vercel.app";
+                    const res = await fetch(`${API_BASE}/api/contact`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload),
+                    });
+
+                    if (!res.ok) throw new Error("Request failed");
+
+                    form.reset();
+                    updateButtonState(); // will disable again
+                    successMessage.classList.remove("d-none");
+                } catch (err) {
+                    console.error(err);
+                    errorMessage.classList.remove("d-none");
+                    updateButtonState();
+                }
+            });
+        });
+    </script>
 </body>
 
 </html>
