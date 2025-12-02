@@ -751,33 +751,58 @@
             return /\S+@\S+\.\S+/.test(email);
             }
 
+            function setFieldValidity(input, valid, feedbackSelectors = []) {
+            if (valid) {
+                input.classList.remove("is-invalid");
+                input.classList.add("is-valid");
+                feedbackSelectors.forEach(sel => {
+                const el = document.querySelector(sel);
+                if (el) el.classList.add("d-none");
+                });
+            } else {
+                input.classList.add("is-invalid");
+                input.classList.remove("is-valid");
+                feedbackSelectors.forEach(sel => {
+                const el = document.querySelector(sel);
+                if (el) el.classList.remove("d-none");
+                });
+            }
+            }
+
             function updateButtonState() {
             const name = nameInput.value.trim();
             const email = emailInput.value.trim();
             const phone = phoneInput.value.trim();
             const message = messageInput.value.trim();
 
-            const isValid =
-                name.length > 0 &&
-                phone.length > 0 &&
-                message.length > 0 &&
-                isEmailValid(email);
+            const nameOK = name.length > 0;
+            const phoneOK = phone.length > 0;
+            const msgOK = message.length > 0;
+            const emailOK = isEmailValid(email);
 
-            submitButton.disabled = !isValid;
+            setFieldValidity(nameInput, nameOK, ['[data-sb-feedback="name:required"]']);
+            setFieldValidity(phoneInput, phoneOK, ['[data-sb-feedback="phone:required"]']);
+            setFieldValidity(messageInput, msgOK, ['[data-sb-feedback="message:required"]']);
+            setFieldValidity(emailInput, emailOK, [
+                '[data-sb-feedback="email:required"]',
+                '[data-sb-feedback="email:email"]'
+            ]);
+
+            submitButton.disabled = !(nameOK && emailOK && phoneOK && msgOK);
             }
 
-            // Run validation whenever the user types
             [nameInput, emailInput, phoneInput, messageInput].forEach((input) => {
             input.addEventListener("input", updateButtonState);
             });
 
-            // Initial state (disabled)
+            // Initial state
             updateButtonState();
 
             form.addEventListener("submit", async (e) => {
                 e.preventDefault();
 
-                // Safety: don't submit if somehow still invalid
+                // Re-run validation right before submit
+                updateButtonState();
                 if (submitButton.disabled) return;
 
                 submitButton.disabled = true;
@@ -802,7 +827,10 @@
                     if (!res.ok) throw new Error("Request failed");
 
                     form.reset();
-                    updateButtonState(); // will disable again
+                    [nameInput, emailInput, phoneInput, messageInput].forEach((input) => {
+                    input.classList.remove("is-valid", "is-invalid");
+                    });
+                    updateButtonState();
                     successMessage.classList.remove("d-none");
                 } catch (err) {
                     console.error(err);
