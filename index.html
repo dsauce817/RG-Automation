@@ -770,25 +770,25 @@
             }
 
             function updateButtonState() {
-            const name = nameInput.value.trim();
-            const email = emailInput.value.trim();
-            const phone = phoneInput.value.trim();
-            const message = messageInput.value.trim();
+                const name = nameInput.value.trim();
+                const email = emailInput.value.trim();
+                const phone = phoneInput.value.trim();
+                const message = messageInput.value.trim();
 
-            const nameOK = name.length > 0;
-            const phoneOK = phone.length > 0;
-            const msgOK = message.length > 0;
-            const emailOK = isEmailValid(email);
+                const nameOK = name.length > 0;
+                const phoneOK = phone.length > 0;
+                const msgOK = message.length > 0;
+                const emailOK = isEmailValid(email);
 
-            setFieldValidity(nameInput, nameOK, ['[data-sb-feedback="name:required"]']);
-            setFieldValidity(phoneInput, phoneOK, ['[data-sb-feedback="phone:required"]']);
-            setFieldValidity(messageInput, msgOK, ['[data-sb-feedback="message:required"]']);
-            setFieldValidity(emailInput, emailOK, [
-                '[data-sb-feedback="email:required"]',
-                '[data-sb-feedback="email:email"]'
-            ]);
+                setFieldValidity(nameInput, nameOK, ['[data-sb-feedback="name:required"]']);
+                setFieldValidity(phoneInput, phoneOK, ['[data-sb-feedback="phone:required"]']);
+                setFieldValidity(messageInput, msgOK, ['[data-sb-feedback="message:required"]']);
+                setFieldValidity(emailInput, emailOK, [
+                    '[data-sb-feedback="email:required"]',
+                    '[data-sb-feedback="email:email"]'
+                ]);
 
-            submitButton.disabled = !(nameOK && emailOK && phoneOK && msgOK);
+                submitButton.disabled = !(nameOK && emailOK && phoneOK && msgOK);
             }
 
             [nameInput, emailInput, phoneInput, messageInput].forEach((input) => {
@@ -826,11 +826,17 @@
 
                     if (!res.ok) throw new Error("Request failed");
 
-                    form.reset();
-                    [nameInput, emailInput, phoneInput, messageInput].forEach((input) => {
-                    input.classList.remove("is-valid", "is-invalid");
-                    });
-                    updateButtonState();
+                    // Hide only the fields + button, not the success message
+                    const fieldsRow = document.querySelector(
+                    "#contactForm .row.align-items-stretch"
+                    );
+                    const buttonWrapper = document.querySelector(
+                    "#contactForm > .text-center"   // 👈 direct child, the button wrapper
+                    );
+
+                    if (fieldsRow) fieldsRow.style.display = "none";
+                    if (buttonWrapper) buttonWrapper.style.display = "none";
+
                     successMessage.classList.remove("d-none");
                 } catch (err) {
                     console.error(err);
